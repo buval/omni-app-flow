@@ -28,7 +28,7 @@ const Home = () => {
         </div>
       </header>
 
-      <main className="px-4 -mt-8 space-y-6">
+      <main className="px-4 pt-4 space-y-6">
         {/* Important Notifications */}
         <Card className="p-4 border-l-4 border-l-primary shadow-lg bg-card">
           <div className="flex items-start gap-3">
