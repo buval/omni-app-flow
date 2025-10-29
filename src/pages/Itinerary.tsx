@@ -21,8 +21,8 @@ const travelModes = [
 ];
 
 const Itinerary = () => {
-  const [origin, setOrigin] = useState("Tehran, Iran");
-  const [destination, setDestination] = useState("Vancouver, Canada");
+  const [origin, setOrigin] = useState("");
+  const [destination, setDestination] = useState("");
   const [selectedMode, setSelectedMode] = useState("All");
   const [originQuery, setOriginQuery] = useState("");
   const [destinationQuery, setDestinationQuery] = useState("");
