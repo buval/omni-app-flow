@@ -14,7 +14,297 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      border_info: {
+        Row: {
+          country: string
+          created_at: string
+          currency: string | null
+          customs_info: string | null
+          id: string
+          language: string | null
+          timezone: string | null
+          travel_alerts: string | null
+          updated_at: string
+          visa_processing_time: string | null
+          visa_required: boolean | null
+          visa_type: string | null
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          currency?: string | null
+          customs_info?: string | null
+          id?: string
+          language?: string | null
+          timezone?: string | null
+          travel_alerts?: string | null
+          updated_at?: string
+          visa_processing_time?: string | null
+          visa_required?: boolean | null
+          visa_type?: string | null
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          currency?: string | null
+          customs_info?: string | null
+          id?: string
+          language?: string | null
+          timezone?: string | null
+          travel_alerts?: string | null
+          updated_at?: string
+          visa_processing_time?: string | null
+          visa_required?: boolean | null
+          visa_type?: string | null
+        }
+        Relationships: []
+      }
+      flights: {
+        Row: {
+          airline: string
+          arrival_airport: string
+          arrival_time: string
+          created_at: string
+          departure_airport: string
+          departure_time: string
+          flight_number: string
+          gate: string | null
+          id: string
+          seat: string | null
+          status: string | null
+          terminal: string | null
+          trip_id: string
+        }
+        Insert: {
+          airline: string
+          arrival_airport: string
+          arrival_time: string
+          created_at?: string
+          departure_airport: string
+          departure_time: string
+          flight_number: string
+          gate?: string | null
+          id?: string
+          seat?: string | null
+          status?: string | null
+          terminal?: string | null
+          trip_id: string
+        }
+        Update: {
+          airline?: string
+          arrival_airport?: string
+          arrival_time?: string
+          created_at?: string
+          departure_airport?: string
+          departure_time?: string
+          flight_number?: string
+          gate?: string | null
+          id?: string
+          seat?: string | null
+          status?: string | null
+          terminal?: string | null
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flights_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotels: {
+        Row: {
+          address: string | null
+          check_in: string
+          check_out: string
+          confirmation_number: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          trip_id: string
+        }
+        Insert: {
+          address?: string | null
+          check_in: string
+          check_out: string
+          confirmation_number?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          trip_id: string
+        }
+        Update: {
+          address?: string | null
+          check_in?: string
+          check_out?: string
+          confirmation_number?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotels_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          trip_id: string | null
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          trip_id?: string | null
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          trip_id?: string | null
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      travel_tips: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          destination: string
+          id: string
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          destination: string
+          id?: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          destination?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      trips: {
+        Row: {
+          created_at: string
+          destination: string
+          end_date: string
+          id: string
+          image_url: string | null
+          start_date: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination: string
+          end_date: string
+          id?: string
+          image_url?: string | null
+          start_date: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          end_date?: string
+          id?: string
+          image_url?: string | null
+          start_date?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
