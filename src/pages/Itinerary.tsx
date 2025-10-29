@@ -45,9 +45,9 @@ const Itinerary = () => {
         <Card className="p-4 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="origin">Current Location</Label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-              <Popover open={originOpen && (originQuery.length >= 2 || originCities.length > 0)} onOpenChange={setOriginOpen}>
+            <Popover open={originOpen && (originQuery.length >= 2 || originCities.length > 0)} onOpenChange={setOriginOpen}>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
                 <PopoverTrigger asChild>
                   <Input
                     id="origin"
@@ -64,49 +64,49 @@ const Itinerary = () => {
                       }
                     }}
                     onBlur={() => setTimeout(() => setOriginOpen(false), 200)}
-                    className="pl-9"
+                    className="pl-9 text-foreground"
                     placeholder="Search for a city..."
                     autoComplete="off"
                   />
                 </PopoverTrigger>
-                <PopoverContent 
-                  className="w-[var(--radix-popover-trigger-width)] p-0" 
-                  align="start"
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-                >
-                  <Command>
-                    <CommandList>
-                      {originLoading && <CommandEmpty>Loading cities...</CommandEmpty>}
-                      {!originLoading && originCities.length === 0 && originQuery.length >= 2 && (
-                        <CommandEmpty>No cities found.</CommandEmpty>
-                      )}
-                      <CommandGroup>
-                        {originCities.map((city) => (
-                          <CommandItem
-                            key={city.id}
-                            value={`${city.name}, ${city.country}`}
-                            onSelect={(value) => {
-                              setOrigin(value);
-                              setOriginOpen(false);
-                            }}
-                          >
-                            <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                            <span>{city.name}, {city.country}</span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
+              </div>
+              <PopoverContent 
+                className="w-[var(--radix-popover-trigger-width)] p-0" 
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <Command>
+                  <CommandList>
+                    {originLoading && <CommandEmpty>Loading cities...</CommandEmpty>}
+                    {!originLoading && originCities.length === 0 && originQuery.length >= 2 && (
+                      <CommandEmpty>No cities found.</CommandEmpty>
+                    )}
+                    <CommandGroup>
+                      {originCities.map((city) => (
+                        <CommandItem
+                          key={city.id}
+                          value={`${city.name}, ${city.country}`}
+                          onSelect={(value) => {
+                            setOrigin(value);
+                            setOriginOpen(false);
+                          }}
+                        >
+                          <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
+                          <span>{city.name}, {city.country}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="destination">Destination</Label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary z-10" />
-              <Popover open={destinationOpen && (destinationQuery.length >= 2 || destinationCities.length > 0)} onOpenChange={setDestinationOpen}>
+            <Popover open={destinationOpen && (destinationQuery.length >= 2 || destinationCities.length > 0)} onOpenChange={setDestinationOpen}>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary z-10 pointer-events-none" />
                 <PopoverTrigger asChild>
                   <Input
                     id="destination"
@@ -123,42 +123,42 @@ const Itinerary = () => {
                       }
                     }}
                     onBlur={() => setTimeout(() => setDestinationOpen(false), 200)}
-                    className="pl-9"
+                    className="pl-9 text-foreground"
                     placeholder="Search for a city..."
                     autoComplete="off"
                   />
                 </PopoverTrigger>
-                <PopoverContent 
-                  className="w-[var(--radix-popover-trigger-width)] p-0" 
-                  align="start"
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-                >
-                  <Command>
-                    <CommandList>
-                      {destinationLoading && <CommandEmpty>Loading cities...</CommandEmpty>}
-                      {!destinationLoading && destinationCities.length === 0 && destinationQuery.length >= 2 && (
-                        <CommandEmpty>No cities found.</CommandEmpty>
-                      )}
-                      <CommandGroup>
-                        {destinationCities.map((city) => (
-                          <CommandItem
-                            key={city.id}
-                            value={`${city.name}, ${city.country}`}
-                            onSelect={(value) => {
-                              setDestination(value);
-                              setDestinationOpen(false);
-                            }}
-                          >
-                            <MapPin className="mr-2 h-4 w-4 text-primary" />
-                            <span>{city.name}, {city.country}</span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
+              </div>
+              <PopoverContent 
+                className="w-[var(--radix-popover-trigger-width)] p-0" 
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <Command>
+                  <CommandList>
+                    {destinationLoading && <CommandEmpty>Loading cities...</CommandEmpty>}
+                    {!destinationLoading && destinationCities.length === 0 && destinationQuery.length >= 2 && (
+                      <CommandEmpty>No cities found.</CommandEmpty>
+                    )}
+                    <CommandGroup>
+                      {destinationCities.map((city) => (
+                        <CommandItem
+                          key={city.id}
+                          value={`${city.name}, ${city.country}`}
+                          onSelect={(value) => {
+                            setDestination(value);
+                            setDestinationOpen(false);
+                          }}
+                        >
+                          <MapPin className="mr-2 h-4 w-4 text-primary" />
+                          <span>{city.name}, {city.country}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <Button variant="outline" className="w-full">
