@@ -1,9 +1,13 @@
+import { useEffect, useState } from "react";
 import { User, Settings, CreditCard, Bell, Shield, HelpCircle, LogOut, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import BottomNav from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const menuItems = [
   { icon: User, label: "Personal Information", path: "/profile/personal" },
@@ -16,6 +20,70 @@ const menuItems = [
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+  const [profile, setProfile] = useState<any>(null);
+  const [tripsCount, setTripsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+      
+      setProfile(profileData);
+
+      const { count } = await supabase
+        .from('trips')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id);
+      
+      setTripsCount(count || 0);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -24,13 +92,13 @@ const Profile = () => {
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20 border-4 border-white/20">
             <AvatarFallback className="bg-white/20 text-2xl font-bold">
-              AH
+              {getInitials(profile?.full_name || user?.email || '')}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold">Arash Hosseini</h1>
-            <p className="text-sm text-primary-foreground/80">arash@example.com</p>
-            <p className="text-xs text-primary-foreground/60 mt-1">Member since 2023</p>
+            <h1 className="text-2xl font-bold">{profile?.full_name || 'Travel User'}</h1>
+            <p className="text-sm text-primary-foreground/80">{profile?.email || user?.email}</p>
+            <p className="text-xs text-primary-foreground/60 mt-1">Member since {new Date(user?.created_at || '').getFullYear()}</p>
           </div>
         </div>
       </header>
@@ -40,17 +108,17 @@ const Profile = () => {
         <Card className="p-4">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-primary">12</p>
+              <p className="text-2xl font-bold text-primary">{tripsCount}</p>
               <p className="text-xs text-muted-foreground mt-1">Trips</p>
             </div>
             <Separator orientation="vertical" className="mx-auto h-12" />
             <div>
-              <p className="text-2xl font-bold text-primary">8</p>
+              <p className="text-2xl font-bold text-primary">0</p>
               <p className="text-xs text-muted-foreground mt-1">Countries</p>
             </div>
             <Separator orientation="vertical" className="mx-auto h-12" />
             <div>
-              <p className="text-2xl font-bold text-primary">156</p>
+              <p className="text-2xl font-bold text-primary">{tripsCount * 10}</p>
               <p className="text-xs text-muted-foreground mt-1">Points</p>
             </div>
           </div>
@@ -86,7 +154,7 @@ const Profile = () => {
             <div>
               <h3 className="font-semibold">TravEZ Rewards</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                156 points • Silver Member
+                {tripsCount * 10} points • {tripsCount > 5 ? 'Gold' : 'Silver'} Member
               </p>
             </div>
             <button className="text-primary font-medium text-sm">
@@ -97,7 +165,7 @@ const Profile = () => {
 
         {/* Logout */}
         <button
-          onClick={() => navigate("/")}
+          onClick={handleLogout}
           className="w-full flex items-center justify-center gap-2 p-4 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
         >
           <LogOut className="h-5 w-5" />
