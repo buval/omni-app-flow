@@ -28,9 +28,55 @@ const Itinerary = () => {
   const [destinationQuery, setDestinationQuery] = useState("");
   const [originOpen, setOriginOpen] = useState(false);
   const [destinationOpen, setDestinationOpen] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   
   const { cities: originCities, loading: originLoading } = useCitySearch(originQuery);
   const { cities: destinationCities, loading: destinationLoading } = useCitySearch(destinationQuery);
+
+  const handleSearch = async () => {
+    if (!origin || !destination) {
+      return;
+    }
+    
+    setLoading(true);
+    setShowResults(true);
+    
+    // Mock results for demonstration - can be replaced with real API
+    setTimeout(() => {
+      setSearchResults([
+        {
+          id: 1,
+          airline: "Turkish Airlines",
+          price: "$850",
+          duration: "18h 50m",
+          stops: "1 stop (Istanbul)",
+          departure: "10:30 AM",
+          arrival: "2:20 PM +1"
+        },
+        {
+          id: 2,
+          airline: "British Airways",
+          price: "$920",
+          duration: "19h 15m",
+          stops: "1 stop (London)",
+          departure: "2:15 PM",
+          arrival: "8:30 PM +1"
+        },
+        {
+          id: 3,
+          airline: "Lufthansa",
+          price: "$885",
+          duration: "20h 05m",
+          stops: "1 stop (Frankfurt)",
+          departure: "6:45 AM",
+          arrival: "1:50 PM +1"
+        }
+      ]);
+      setLoading(false);
+    }, 1500);
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -196,28 +242,85 @@ const Itinerary = () => {
           </div>
         </div>
 
+        {/* Search Button */}
+        {origin && destination && !showResults && (
+          <Button 
+            variant="default" 
+            className="w-full" 
+            size="lg"
+            onClick={handleSearch}
+          >
+            <Search className="mr-2 h-4 w-4" />
+            See Results
+          </Button>
+        )}
+
         {/* Search Results */}
-        <Card className="p-4">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="font-semibold text-lg">{origin} → {destination}</h3>
-              <p className="text-sm text-muted-foreground mt-1">18 hr 50 min+</p>
-              <Badge variant="secondary" className="mt-2">Connecting (1 or more stops)</Badge>
+        {showResults && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-lg">{origin} → {destination}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {selectedMode !== "All" ? `${selectedMode} options` : "All travel options"}
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowResults(false)}
+              >
+                New Search
+              </Button>
             </div>
-          </div>
 
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Airlines</p>
-              <p className="text-sm">Turkish Airlines, British Airways, Lufthansa, etc.</p>
-            </div>
-
-            <Button variant="hero" className="w-full">
-              <Search className="mr-2 h-4 w-4" />
-              See Results on Google Flights
-            </Button>
+            {loading ? (
+              <Card className="p-8">
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <p className="text-sm text-muted-foreground">Searching for best options...</p>
+                </div>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {searchResults.map((result) => (
+                  <Card key={result.id} className="p-4 hover:border-primary transition-colors cursor-pointer">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Plane className="h-4 w-4 text-primary" />
+                          <p className="font-semibold">{result.airline}</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{result.stops}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-primary">{result.price}</p>
+                        <p className="text-xs text-muted-foreground">per person</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-border">
+                      <div>
+                        <p className="text-sm font-medium">{result.departure}</p>
+                        <p className="text-xs text-muted-foreground">Departure</p>
+                      </div>
+                      <div className="flex-1 mx-4">
+                        <div className="h-px bg-border relative">
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2">
+                            <p className="text-xs text-muted-foreground">{result.duration}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">{result.arrival}</p>
+                        <p className="text-xs text-muted-foreground">Arrival</p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        </Card>
+        )}
 
         {/* Travel Tips */}
         <Card className="p-4 bg-accent/50">
