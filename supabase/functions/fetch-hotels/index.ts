@@ -16,33 +16,41 @@ Deno.serve(async (req) => {
     
     console.log('Fetching hotels for:', city, lat, lon);
 
-    // Use OpenTripMap API (free, no API key needed)
-    const radius = 5000; // 5km radius
-    const response = await fetch(
-      `https://api.opentripmap.com/0.1/en/places/radius?radius=${radius}&lon=${lon}&lat=${lat}&kinds=accomodations&format=json&limit=10`
-    );
+    let apiHotels: any[] = [];
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch hotels');
+    // Try to fetch from OpenTripMap API, but don't fail if it doesn't work
+    try {
+      const radius = 5000;
+      const response = await fetch(
+        `https://api.opentripmap.com/0.1/en/places/radius?radius=${radius}&lon=${lon}&lat=${lat}&kinds=accomodations&format=json&limit=10`
+      );
+
+      console.log('API response status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API returned data:', data.length, 'places');
+        
+        apiHotels = data.map((place: any, index: number) => ({
+          id: place.xid || `hotel-${index}`,
+          name: place.name || `Hotel ${index + 1}`,
+          image: '/placeholder.svg',
+          price: Math.floor(Math.random() * (300 - 80) + 80),
+          rating: (Math.random() * (5 - 3.5) + 3.5).toFixed(1),
+          location: city,
+          amenities: ['WiFi', 'Pool', 'Spa', 'Restaurant'].slice(0, Math.floor(Math.random() * 3) + 2),
+          description: `Beautiful hotel in ${city}`,
+          distance: place.dist ? `${(place.dist / 1000).toFixed(1)}km from center` : 'City center'
+        }));
+      } else {
+        console.log('API request failed with status:', response.status);
+      }
+    } catch (apiError) {
+      console.log('API fetch error (using fallback data):', apiError);
     }
 
-    const data = await response.json();
-    
-    // Transform the data to match our hotel structure
-    const hotels = data.map((place: any, index: number) => ({
-      id: place.xid || `hotel-${index}`,
-      name: place.name || `Hotel ${index + 1}`,
-      image: '/placeholder.svg',
-      price: Math.floor(Math.random() * (300 - 80) + 80),
-      rating: (Math.random() * (5 - 3.5) + 3.5).toFixed(1),
-      location: city,
-      amenities: ['WiFi', 'Pool', 'Spa', 'Restaurant'].slice(0, Math.floor(Math.random() * 3) + 2),
-      description: `Beautiful hotel in ${city}`,
-      distance: place.dist ? `${(place.dist / 1000).toFixed(1)}km from center` : 'City center'
-    }));
-
-    // If no hotels found from API, return sample data
-    const finalHotels = hotels.length > 0 ? hotels : [
+    // Use API data if available, otherwise use sample data
+    const finalHotels = apiHotels.length > 0 ? apiHotels : [
       {
         id: '1',
         name: `Grand Hotel ${city}`,
