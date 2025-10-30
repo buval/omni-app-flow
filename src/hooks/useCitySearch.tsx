@@ -22,51 +22,49 @@ export const useCitySearch = (query: string) => {
     const searchCities = async () => {
       setLoading(true);
       try {
-        // Use OpenStreetMap Nominatim API (completely free, no API key needed)
-        const nominatimResponse = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=10&addressdetails=1`,
+        // Using GeoDB Cities API (free tier, no API key needed)
+        const response = await fetch(
+          `https://wft-geo-db.p.rapidapi.com/v1/geo/cities?namePrefix=${encodeURIComponent(query)}&limit=5&sort=-population`,
           {
             headers: {
-              'User-Agent': 'TravelApp/1.0'
+              'X-RapidAPI-Key': 'demo', // Using demo key for basic functionality
+              'X-RapidAPI-Host': 'wft-geo-db.p.rapidapi.com'
             }
           }
         );
-
-        if (!nominatimResponse.ok) {
-          throw new Error('Failed to fetch cities');
-        }
-
-        const nominatimData = await nominatimResponse.json();
         
-        // Filter for cities and towns only
-        const cityResults = nominatimData.filter((item: any) => 
-          ['city', 'town', 'village', 'municipality'].includes(item.type) ||
-          ['city', 'town', 'village', 'municipality'].includes(item.addresstype)
-        );
-
-        const formattedCities = cityResults.map((item: any, index: number) => {
-          // Extract city name and country from display_name
-          const parts = item.display_name.split(',').map((p: string) => p.trim());
-          const cityName = item.address?.city || item.address?.town || item.address?.village || item.name || parts[0];
-          const country = item.address?.country || parts[parts.length - 1];
-          const region = item.address?.state || item.address?.region || parts[1];
-
-          return {
-            id: item.place_id || index,
-            name: cityName,
-            country: country,
-            region: region !== cityName ? region : undefined,
+        if (!response.ok) {
+          // Fallback to OpenStreetMap Nominatim (completely free)
+          const nominatimResponse = await fetch(
+            `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(query)}&format=json&limit=5`,
+            {
+              headers: {
+                'User-Agent': 'TravelApp/1.0'
+              }
+            }
+          );
+          const nominatimData = await nominatimResponse.json();
+          const formattedCities = nominatimData.map((item: any, index: number) => ({
+            id: index,
+            name: item.name,
+            country: item.display_name.split(',').pop()?.trim() || '',
+            region: item.display_name.split(',')[1]?.trim(),
             lat: item.lat,
             lon: item.lon
-          };
-        });
-
-        // Remove duplicates based on name and country
-        const uniqueCities = formattedCities.filter((city: any, index: number, self: any[]) =>
-          index === self.findIndex((c: any) => c.name === city.name && c.country === city.country)
-        );
-
-        setCities(uniqueCities);
+          }));
+          setCities(formattedCities);
+        } else {
+          const data = await response.json();
+          const formattedCities = data.data?.map((city: any) => ({
+            id: city.id,
+            name: city.name,
+            country: city.country,
+            region: city.region,
+            lat: city.latitude?.toString(),
+            lon: city.longitude?.toString()
+          })) || [];
+          setCities(formattedCities);
+        }
       } catch (error) {
         console.error('Error fetching cities:', error);
         setCities([]);
