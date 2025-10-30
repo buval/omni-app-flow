@@ -226,7 +226,7 @@ const Home = () => {
                 />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="z-50 bg-popover border w-[var(--radix-popover-trigger-width)] p-0" align="start">
+            <PopoverContent className="z-50 bg-popover border w-[var(--radix-popover-trigger-width)] p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
               <div className="max-h-[300px] overflow-y-auto">
                 {citiesLoading ? (
                   <div className="p-4 text-sm text-muted-foreground text-center">
