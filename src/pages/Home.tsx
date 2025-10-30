@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Bell, AlertCircle, ChevronRight, Plane, Hotel, MapPin, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,14 @@ const Home = () => {
   const [cityQuery, setCityQuery] = useState("");
   const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
   const { cities, loading: citiesLoading } = useCitySearch(cityQuery);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (cityPopoverOpen) {
+      // Ensure the input keeps focus when the popover opens
+      inputRef.current?.focus();
+    }
+  }, [cityPopoverOpen]);
 
   useEffect(() => {
     if (user) {
@@ -204,7 +212,9 @@ const Home = () => {
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
                 <Input
+                  ref={inputRef}
                   placeholder="Select a city..."
+                  aria-label="Select a city"
                   value={selectedCity || cityQuery}
                   onChange={(e) => {
                     setCityQuery(e.target.value);
@@ -216,7 +226,7 @@ const Home = () => {
                 />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+            <PopoverContent className="z-50 bg-popover border w-[var(--radix-popover-trigger-width)] p-0" align="start">
               <div className="max-h-[300px] overflow-y-auto">
                 {citiesLoading ? (
                   <div className="p-4 text-sm text-muted-foreground text-center">
