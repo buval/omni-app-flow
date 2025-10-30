@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Bell, AlertCircle, ChevronRight, Plane, Hotel, MapPin, Plus } from "lucide-react";
+import { Bell, AlertCircle, ChevronRight, Plane, Hotel, MapPin, Plus, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,10 +8,10 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-travel.jpg";
-import hotelImage from "@/assets/hotel.jpg";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { useCitySearch } from "@/hooks/useCitySearch";
+import HotelDetailsModal from "@/components/HotelDetailsModal";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -25,6 +25,8 @@ const Home = () => {
   const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
   const [promotions, setPromotions] = useState<any[]>([]);
   const [loadingHotels, setLoadingHotels] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState<any>(null);
+  const [hotelModalOpen, setHotelModalOpen] = useState(false);
   const { cities, loading: citiesLoading } = useCitySearch(cityQuery);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -287,32 +289,105 @@ const Home = () => {
           </Popover>
         </div>
 
-        {/* Promotions - Only visible after city selection */}
+        {/* Hotels - Only visible after city selection */}
         {selectedCity && (
-          <div className="space-y-3">
-            <h2 className="text-xl font-bold">Hotels in {selectedCity.name}</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">Hotels in {selectedCity.name}</h2>
+              <Badge variant="secondary">{promotions.length} properties</Badge>
+            </div>
+            
             {loadingHotels ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : promotions.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3">
                 {promotions.map((hotel) => (
-                  <Card key={hotel.id} className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
-                    <img 
-                      src={hotelImage} 
-                      alt={hotel.name} 
-                      className="w-full h-24 object-cover"
-                    />
-                    <div className="p-2 space-y-1">
-                      <p className="text-sm font-medium truncate">{hotel.name}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">⭐ {hotel.rating}</span>
-                        <span className="text-sm font-semibold text-primary">${hotel.price}</span>
+                  <Card 
+                    key={hotel.id} 
+                    className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    onClick={() => {
+                      setSelectedHotel(hotel);
+                      setHotelModalOpen(true);
+                    }}
+                  >
+                    <div className="flex gap-3">
+                      <div className="relative w-32 h-32 flex-shrink-0">
+                        <img 
+                          src={hotel.image} 
+                          alt={hotel.name} 
+                          className="w-full h-full object-cover"
+                        />
+                        {hotel.originalPrice && (
+                          <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground">
+                            {Math.round(((hotel.originalPrice - hotel.price) / hotel.originalPrice) * 100)}% OFF
+                          </Badge>
+                        )}
                       </div>
-                      {hotel.distance && (
-                        <p className="text-xs text-muted-foreground">{hotel.distance}</p>
-                      )}
+                      
+                      <div className="flex-1 p-3 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between mb-1">
+                            <div>
+                              <h3 className="font-semibold line-clamp-1">{hotel.name}</h3>
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                <MapPin className="h-3 w-3" />
+                                <span className="line-clamp-1">{hotel.distance}</span>
+                              </div>
+                            </div>
+                            {hotel.stars && (
+                              <Badge variant="outline" className="ml-2">
+                                {'⭐'.repeat(hotel.stars)}
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {hotel.amenities?.slice(0, 3).map((amenity: string) => (
+                              <Badge key={amenity} variant="secondary" className="text-xs">
+                                {amenity}
+                              </Badge>
+                            ))}
+                            {hotel.amenities?.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{hotel.amenities.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-end justify-between mt-2">
+                          <div className="flex items-center gap-1">
+                            <div className="bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-xs font-bold">
+                              {hotel.rating}
+                            </div>
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star 
+                                  key={i} 
+                                  className={`h-3 w-3 ${i < Math.floor(parseFloat(hotel.rating)) ? 'fill-primary text-primary' : 'text-muted'}`} 
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              ({hotel.reviewCount})
+                            </span>
+                          </div>
+                          
+                          <div className="text-right">
+                            {hotel.originalPrice && (
+                              <p className="text-xs text-muted-foreground line-through">
+                                ${hotel.originalPrice}
+                              </p>
+                            )}
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-xl font-bold text-primary">${hotel.price}</span>
+                              <span className="text-xs text-muted-foreground">/night</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </Card>
                 ))}
@@ -323,6 +398,12 @@ const Home = () => {
           </div>
         )}
       </main>
+
+      <HotelDetailsModal 
+        hotel={selectedHotel}
+        open={hotelModalOpen}
+        onClose={() => setHotelModalOpen(false)}
+      />
 
       <BottomNav />
     </div>
