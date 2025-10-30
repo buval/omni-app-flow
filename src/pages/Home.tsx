@@ -9,6 +9,9 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-travel.jpg";
 import hotelImage from "@/assets/hotel.jpg";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { useCitySearch } from "@/hooks/useCitySearch";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -17,6 +20,10 @@ const Home = () => {
   const [trips, setTrips] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [cityQuery, setCityQuery] = useState("");
+  const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
+  const { cities, loading: citiesLoading } = useCitySearch(cityQuery);
 
   useEffect(() => {
     if (user) {
@@ -189,30 +196,89 @@ const Home = () => {
           {trips.length === 0 ? 'Plan Your First Trip' : 'Schedule Another Trip'}
         </Button>
 
-        {/* Promotions */}
+        {/* City Selector */}
         <div className="space-y-3">
-          <h2 className="text-xl font-bold">Promotions in Vancouver</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { name: "Fairmont Waterfront", discount: "20% OFF" },
-              { name: "Pinnacle Hotel", discount: "15% OFF" },
-              { name: "Fairmont Hotel", discount: "25% OFF" },
-              { name: "Pan Pacific", discount: "30% OFF" },
-            ].map((hotel, i) => (
-              <Card key={i} className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
-                <img 
-                  src={hotelImage} 
-                  alt={hotel.name} 
-                  className="w-full h-24 object-cover"
+          <h2 className="text-xl font-bold">Explore Hotel Promotions</h2>
+          <Popover open={cityPopoverOpen} onOpenChange={setCityPopoverOpen}>
+            <PopoverTrigger asChild>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+                <Input
+                  placeholder="Select a city..."
+                  value={selectedCity || cityQuery}
+                  onChange={(e) => {
+                    setCityQuery(e.target.value);
+                    setSelectedCity("");
+                    setCityPopoverOpen(true);
+                  }}
+                  onFocus={() => setCityPopoverOpen(true)}
+                  className="pl-10 text-foreground"
                 />
-                <div className="p-2">
-                  <p className="text-sm font-medium truncate">{hotel.name}</p>
-                  <Badge variant="secondary" className="mt-1 text-xs">{hotel.discount}</Badge>
-                </div>
-              </Card>
-            ))}
-          </div>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+              <div className="max-h-[300px] overflow-y-auto">
+                {citiesLoading ? (
+                  <div className="p-4 text-sm text-muted-foreground text-center">
+                    Searching cities...
+                  </div>
+                ) : cities.length > 0 ? (
+                  cities.map((city) => (
+                    <button
+                      key={city.id}
+                      className="w-full px-4 py-3 text-left hover:bg-accent transition-colors border-b last:border-b-0"
+                      onClick={() => {
+                        setSelectedCity(`${city.name}, ${city.country}`);
+                        setCityQuery("");
+                        setCityPopoverOpen(false);
+                      }}
+                    >
+                      <div className="font-medium">{city.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {city.region ? `${city.region}, ${city.country}` : city.country}
+                      </div>
+                    </button>
+                  ))
+                ) : cityQuery ? (
+                  <div className="p-4 text-sm text-muted-foreground text-center">
+                    No cities found
+                  </div>
+                ) : (
+                  <div className="p-4 text-sm text-muted-foreground text-center">
+                    Start typing to search cities
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
+
+        {/* Promotions - Only visible after city selection */}
+        {selectedCity && (
+          <div className="space-y-3">
+            <h2 className="text-xl font-bold">Promotions in {selectedCity.split(',')[0]}</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { name: "Fairmont Waterfront", discount: "20% OFF" },
+                { name: "Pinnacle Hotel", discount: "15% OFF" },
+                { name: "Fairmont Hotel", discount: "25% OFF" },
+                { name: "Pan Pacific", discount: "30% OFF" },
+              ].map((hotel, i) => (
+                <Card key={i} className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+                  <img 
+                    src={hotelImage} 
+                    alt={hotel.name} 
+                    className="w-full h-24 object-cover"
+                  />
+                  <div className="p-2">
+                    <p className="text-sm font-medium truncate">{hotel.name}</p>
+                    <Badge variant="secondary" className="mt-1 text-xs">{hotel.discount}</Badge>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
 
       <BottomNav />
