@@ -6,15 +6,37 @@ interface HotelRequest {
   lon: number;
 }
 
-async function fetchHotelImage(hotelName: string): Promise<string> {
+async function generateHotelImage(hotelName: string, city: string): Promise<string> {
   try {
-    // Use Unsplash API for real hotel images (free, no API key needed for basic use)
-    const response = await fetch(
-      `https://source.unsplash.com/800x600/?hotel,${encodeURIComponent(hotelName)}`
-    );
-    return response.url;
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: `Generate a professional, high-quality photo of a luxury hotel exterior. The hotel should be modern and elegant, with beautiful architecture. Style: professional hotel photography, daytime, clear weather. This is for ${hotelName} in ${city}.`
+          }
+        ],
+        modalities: ['image', 'text']
+      })
+    });
+
+    if (!response.ok) {
+      console.log('AI image generation failed:', response.status);
+      return '/placeholder.svg';
+    }
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    return imageUrl || '/placeholder.svg';
   } catch (error) {
-    console.log('Failed to fetch hotel image:', error);
+    console.log('Error generating hotel image:', error);
     return '/placeholder.svg';
   }
 }
@@ -44,16 +66,16 @@ Deno.serve(async (req) => {
         const data = await response.json();
         console.log('API returned data:', data.length, 'places');
         
-        // Fetch images for hotels in parallel
+        // Fetch images for hotels in parallel (limit to 3 to avoid rate limits)
         const hotelsWithImages = await Promise.all(
-          data.slice(0, 8).map(async (place: any, index: number) => {
+          data.slice(0, 3).map(async (place: any, index: number) => {
             const hotelName = place.name || `Hotel ${index + 1}`;
             const basePrice = Math.floor(Math.random() * (300 - 80) + 80);
             
             return {
               id: place.xid || `hotel-${index}`,
               name: hotelName,
-              image: await fetchHotelImage(hotelName),
+              image: await generateHotelImage(hotelName, city),
               price: basePrice,
               originalPrice: Math.floor(basePrice * 1.3),
               rating: (Math.random() * (1) + 4).toFixed(1),
@@ -88,11 +110,11 @@ Deno.serve(async (req) => {
     }
 
     // Use API data if available, otherwise use sample data
-    const finalHotels = apiHotels.length > 0 ? apiHotels : await Promise.all([
+    const finalHotels = apiHotels.length > 0 ? apiHotels : [
       {
         id: '1',
         name: `Grand Hotel ${city}`,
-        image: await fetchHotelImage(`Grand Hotel ${city}`),
+        image: await generateHotelImage(`Grand Hotel ${city}`, city),
         price: 120,
         originalPrice: 156,
         rating: '4.5',
@@ -116,7 +138,7 @@ Deno.serve(async (req) => {
       {
         id: '2',
         name: `${city} Plaza`,
-        image: await fetchHotelImage(`${city} Plaza`),
+        image: await generateHotelImage(`${city} Plaza`, city),
         price: 95,
         originalPrice: 124,
         rating: '4.2',
@@ -139,7 +161,7 @@ Deno.serve(async (req) => {
       {
         id: '3',
         name: `Central ${city} Inn`,
-        image: await fetchHotelImage(`Central ${city} Inn`),
+        image: await generateHotelImage(`Central ${city} Inn`, city),
         price: 85,
         originalPrice: 111,
         rating: '4.0',
@@ -158,7 +180,7 @@ Deno.serve(async (req) => {
         checkOut: '10:00',
         cancellationPolicy: 'Free cancellation until 24 hours before check-in'
       }
-    ].map(async (hotel) => ({ ...hotel, image: await fetchHotelImage(hotel.name) })));
+    ];
 
     console.log('Returning hotels:', finalHotels.length);
 
