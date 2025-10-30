@@ -20,9 +20,11 @@ const Home = () => {
   const [trips, setTrips] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<any>(null);
   const [cityQuery, setCityQuery] = useState("");
   const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
+  const [promotions, setPromotions] = useState<any[]>([]);
+  const [loadingHotels, setLoadingHotels] = useState(false);
   const { cities, loading: citiesLoading } = useCitySearch(cityQuery);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -72,6 +74,32 @@ const Home = () => {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCitySelect = async (city: any) => {
+    setSelectedCity(city);
+    setCityQuery("");
+    setCityPopoverOpen(false);
+    setLoadingHotels(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-hotels', {
+        body: {
+          city: city.name,
+          lat: parseFloat(city.lat || '0'),
+          lon: parseFloat(city.lon || '0')
+        }
+      });
+
+      if (error) throw error;
+      
+      setPromotions(data.hotels || []);
+    } catch (error) {
+      console.error('Error fetching hotels:', error);
+      setPromotions([]);
+    } finally {
+      setLoadingHotels(false);
     }
   };
 
@@ -215,10 +243,10 @@ const Home = () => {
                   ref={inputRef}
                   placeholder="Select a city..."
                   aria-label="Select a city"
-                  value={selectedCity || cityQuery}
+                  value={selectedCity ? `${selectedCity.name}, ${selectedCity.country}` : cityQuery}
                   onChange={(e) => {
                     setCityQuery(e.target.value);
-                    setSelectedCity("");
+                    setSelectedCity(null);
                     setCityPopoverOpen(true);
                   }}
                   onFocus={() => setCityPopoverOpen(true)}
@@ -237,11 +265,7 @@ const Home = () => {
                     <button
                       key={city.id}
                       className="w-full px-4 py-3 text-left hover:bg-accent transition-colors border-b last:border-b-0"
-                      onClick={() => {
-                        setSelectedCity(`${city.name}, ${city.country}`);
-                        setCityQuery("");
-                        setCityPopoverOpen(false);
-                      }}
+                      onClick={() => handleCitySelect(city)}
                     >
                       <div className="font-medium">{city.name}</div>
                       <div className="text-sm text-muted-foreground">
@@ -266,27 +290,36 @@ const Home = () => {
         {/* Promotions - Only visible after city selection */}
         {selectedCity && (
           <div className="space-y-3">
-            <h2 className="text-xl font-bold">Promotions in {selectedCity.split(',')[0]}</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { name: "Fairmont Waterfront", discount: "20% OFF" },
-                { name: "Pinnacle Hotel", discount: "15% OFF" },
-                { name: "Fairmont Hotel", discount: "25% OFF" },
-                { name: "Pan Pacific", discount: "30% OFF" },
-              ].map((hotel, i) => (
-                <Card key={i} className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
-                  <img 
-                    src={hotelImage} 
-                    alt={hotel.name} 
-                    className="w-full h-24 object-cover"
-                  />
-                  <div className="p-2">
-                    <p className="text-sm font-medium truncate">{hotel.name}</p>
-                    <Badge variant="secondary" className="mt-1 text-xs">{hotel.discount}</Badge>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            <h2 className="text-xl font-bold">Hotels in {selectedCity.name}</h2>
+            {loadingHotels ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : promotions.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {promotions.map((hotel) => (
+                  <Card key={hotel.id} className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+                    <img 
+                      src={hotelImage} 
+                      alt={hotel.name} 
+                      className="w-full h-24 object-cover"
+                    />
+                    <div className="p-2 space-y-1">
+                      <p className="text-sm font-medium truncate">{hotel.name}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">⭐ {hotel.rating}</span>
+                        <span className="text-sm font-semibold text-primary">${hotel.price}</span>
+                      </div>
+                      {hotel.distance && (
+                        <p className="text-xs text-muted-foreground">{hotel.distance}</p>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-8">No hotels found</p>
+            )}
           </div>
         )}
       </main>

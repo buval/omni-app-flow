@@ -5,6 +5,8 @@ interface City {
   name: string;
   country: string;
   region?: string;
+  lat?: string;
+  lon?: string;
 }
 
 export const useCitySearch = (query: string) => {
@@ -46,7 +48,9 @@ export const useCitySearch = (query: string) => {
             id: index,
             name: item.name,
             country: item.display_name.split(',').pop()?.trim() || '',
-            region: item.display_name.split(',')[1]?.trim()
+            region: item.display_name.split(',')[1]?.trim(),
+            lat: item.lat,
+            lon: item.lon
           }));
           setCities(formattedCities);
         } else {
@@ -55,7 +59,9 @@ export const useCitySearch = (query: string) => {
             id: city.id,
             name: city.name,
             country: city.country,
-            region: city.region
+            region: city.region,
+            lat: city.latitude?.toString(),
+            lon: city.longitude?.toString()
           })) || [];
           setCities(formattedCities);
         }
