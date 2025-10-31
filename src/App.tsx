@@ -32,7 +32,7 @@ const App = () => (
             <Route path="/trip-details" element={<ProtectedRoute><TripDetails /></ProtectedRoute>} />
             <Route path="/itinerary" element={<ProtectedRoute><Itinerary /></ProtectedRoute>} />
             <Route path="/borders" element={<ProtectedRoute><Borders /></ProtectedRoute>} />
-            <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+            <Route path="/explore" element={<Explore />} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
