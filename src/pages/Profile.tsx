@@ -29,6 +29,8 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
@@ -81,6 +83,35 @@ const Profile = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <div className="flex flex-col items-center justify-center min-h-[80vh] p-8">
+          <User className="h-24 w-24 text-muted-foreground/50 mb-6" />
+          <h2 className="text-2xl font-bold mb-2">Guest Mode</h2>
+          <p className="text-muted-foreground text-center mb-6 max-w-md">
+            Sign in to access your profile, save trips, and unlock personalized features
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate('/login')}
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => navigate('/home')}
+              className="px-6 py-3 border border-border rounded-lg font-medium hover:bg-accent transition-colors"
+            >
+              Continue Browsing
+            </button>
+          </div>
+        </div>
+        <BottomNav />
       </div>
     );
   }

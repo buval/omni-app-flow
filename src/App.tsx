@@ -27,12 +27,12 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
-            <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/trip-details" element={<ProtectedRoute><TripDetails /></ProtectedRoute>} />
-            <Route path="/itinerary" element={<ProtectedRoute><Itinerary /></ProtectedRoute>} />
-            <Route path="/borders" element={<ProtectedRoute><Borders /></ProtectedRoute>} />
-            <Route path="/explore" element={<Explore />} />
+            <Route path="/welcome" element={<ProtectedRoute allowGuest><Welcome /></ProtectedRoute>} />
+            <Route path="/home" element={<ProtectedRoute allowGuest><Home /></ProtectedRoute>} />
+            <Route path="/trip-details" element={<ProtectedRoute allowGuest><TripDetails /></ProtectedRoute>} />
+            <Route path="/itinerary" element={<ProtectedRoute allowGuest><Itinerary /></ProtectedRoute>} />
+            <Route path="/borders" element={<ProtectedRoute allowGuest><Borders /></ProtectedRoute>} />
+            <Route path="/explore" element={<ProtectedRoute allowGuest><Explore /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

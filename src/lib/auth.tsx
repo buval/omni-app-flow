@@ -80,15 +80,15 @@ export function useAuth() {
   return context;
 }
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+export function ProtectedRoute({ children, allowGuest = false }: { children: ReactNode, allowGuest?: boolean }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !allowGuest) {
       navigate('/login');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, allowGuest]);
 
   if (loading) {
     return (
@@ -98,5 +98,5 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  return user ? <>{children}</> : null;
+  return (allowGuest || user) ? <>{children}</> : null;
 }
