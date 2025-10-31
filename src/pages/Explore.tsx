@@ -1,16 +1,22 @@
-import { Search, TrendingUp, MapPin, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, TrendingUp, MapPin, Star, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import BottomNav from "@/components/BottomNav";
 import welcomeImage from "@/assets/welcome-travel.jpg";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const destinations = [
-  { name: "Paris, France", type: "City", rating: 4.8, image: welcomeImage },
-  { name: "Tokyo, Japan", type: "City", rating: 4.9, image: welcomeImage },
-  { name: "Dubai, UAE", type: "City", rating: 4.7, image: welcomeImage },
-  { name: "London, UK", type: "City", rating: 4.6, image: welcomeImage },
-];
+interface Destination {
+  name: string;
+  country: string;
+  lat: number;
+  lon: number;
+  places_count: number;
+  image: string | null;
+  rating: string;
+}
 
 const trendingDestinations = [
   "Bali, Indonesia",
@@ -20,6 +26,37 @@ const trendingDestinations = [
 ];
 
 const Explore = () => {
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchDestinations();
+  }, []);
+
+  const fetchDestinations = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('fetch-destinations', {
+        body: { limit: 6, radius: 50000 }
+      });
+
+      if (error) throw error;
+
+      if (data?.destinations) {
+        setDestinations(data.destinations);
+      }
+    } catch (error) {
+      console.error('Error fetching destinations:', error);
+      toast({
+        title: "Error loading destinations",
+        description: "Using default destinations",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header with Search */}
@@ -61,37 +98,51 @@ const Explore = () => {
         {/* Popular Destinations */}
         <div className="space-y-3">
           <h2 className="font-bold text-lg">Popular Destinations</h2>
-          <div className="grid gap-4">
-            {destinations.map((dest, i) => (
-              <Card
-                key={i}
-                className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
-              >
-                <div className="flex gap-3">
-                  <img
-                    src={dest.image}
-                    alt={dest.name}
-                    className="w-32 h-32 object-cover"
-                  />
-                  <div className="flex-1 p-3 flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-semibold text-lg">{dest.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary" className="text-xs">
-                          {dest.type}
-                        </Badge>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {destinations.map((dest, i) => (
+                <Card
+                  key={i}
+                  className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                >
+                  <div className="flex gap-3">
+                    <img
+                      src={dest.image || welcomeImage}
+                      alt={dest.name}
+                      className="w-32 h-32 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = welcomeImage;
+                      }}
+                    />
+                    <div className="flex-1 p-3 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg">{dest.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {dest.country}
+                          </Badge>
+                          {dest.places_count > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              {dest.places_count} places
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Star className="h-4 w-4 fill-primary text-primary" />
+                        <span className="font-medium">{dest.rating}</span>
+                        <span className="text-muted-foreground">(2.5k reviews)</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Star className="h-4 w-4 fill-primary text-primary" />
-                      <span className="font-medium">{dest.rating}</span>
-                      <span className="text-muted-foreground">(2.5k reviews)</span>
-                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Categories */}
