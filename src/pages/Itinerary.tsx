@@ -20,6 +20,136 @@ const travelModes = [
   { icon: Footprints, label: "Walk" },
 ];
 
+// Hard-coded flight database
+const flightDatabase = [
+  {
+    id: 1,
+    type: "flight",
+    airline: "Turkish Airlines",
+    price: "$850",
+    duration: "18h 50m",
+    stops: "1 stop (Istanbul)",
+    departure: "10:30 AM",
+    arrival: "2:20 PM +1"
+  },
+  {
+    id: 2,
+    type: "flight",
+    airline: "British Airways",
+    price: "$920",
+    duration: "19h 15m",
+    stops: "1 stop (London)",
+    departure: "2:15 PM",
+    arrival: "8:30 PM +1"
+  },
+  {
+    id: 3,
+    type: "flight",
+    airline: "Lufthansa",
+    price: "$885",
+    duration: "20h 05m",
+    stops: "1 stop (Frankfurt)",
+    departure: "6:45 AM",
+    arrival: "1:50 PM +1"
+  }
+];
+
+// Hard-coded train database
+const trainDatabase = [
+  {
+    id: 1,
+    type: "train",
+    operator: "Eurostar",
+    price: "$120",
+    duration: "2h 30m",
+    stops: "Direct",
+    departure: "9:15 AM",
+    arrival: "11:45 AM",
+    class: "Standard Premier"
+  },
+  {
+    id: 2,
+    type: "train",
+    operator: "SNCF TGV",
+    price: "$95",
+    duration: "3h 45m",
+    stops: "1 stop (Lyon)",
+    departure: "11:30 AM",
+    arrival: "3:15 PM",
+    class: "Second Class"
+  },
+  {
+    id: 3,
+    type: "train",
+    operator: "Deutsche Bahn ICE",
+    price: "$140",
+    duration: "4h 20m",
+    stops: "Direct",
+    departure: "1:45 PM",
+    arrival: "6:05 PM",
+    class: "First Class"
+  },
+  {
+    id: 4,
+    type: "train",
+    operator: "Trenitalia",
+    price: "$78",
+    duration: "5h 10m",
+    stops: "2 stops",
+    departure: "7:30 AM",
+    arrival: "12:40 PM",
+    class: "Standard"
+  }
+];
+
+// Hard-coded ferry database
+const ferryDatabase = [
+  {
+    id: 1,
+    type: "ferry",
+    operator: "DFDS Seaways",
+    price: "$185",
+    duration: "16h 30m",
+    stops: "Direct",
+    departure: "8:00 PM",
+    arrival: "12:30 PM +1",
+    vessel: "Crown Seaways"
+  },
+  {
+    id: 2,
+    type: "ferry",
+    operator: "P&O Ferries",
+    price: "$95",
+    duration: "7h 30m",
+    stops: "Direct",
+    departure: "10:30 PM",
+    arrival: "6:00 AM +1",
+    vessel: "Spirit of Britain"
+  },
+  {
+    id: 3,
+    type: "ferry",
+    operator: "Stena Line",
+    price: "$145",
+    duration: "12h 15m",
+    stops: "Direct",
+    departure: "6:45 PM",
+    arrival: "7:00 AM +1",
+    vessel: "Stena Adventurer"
+  },
+  {
+    id: 4,
+    type: "ferry",
+    operator: "Brittany Ferries",
+    price: "$165",
+    duration: "11h 00m",
+    stops: "Direct",
+    departure: "11:00 PM",
+    arrival: "10:00 AM +1",
+    vessel: "Pont-Aven"
+  }
+];
+
 const Itinerary = () => {
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
@@ -43,37 +173,23 @@ const Itinerary = () => {
     setLoading(true);
     setShowResults(true);
     
-    // Mock results for demonstration - can be replaced with real API
+    // Mock results based on selected travel mode
     setTimeout(() => {
-      setSearchResults([
-        {
-          id: 1,
-          airline: "Turkish Airlines",
-          price: "$850",
-          duration: "18h 50m",
-          stops: "1 stop (Istanbul)",
-          departure: "10:30 AM",
-          arrival: "2:20 PM +1"
-        },
-        {
-          id: 2,
-          airline: "British Airways",
-          price: "$920",
-          duration: "19h 15m",
-          stops: "1 stop (London)",
-          departure: "2:15 PM",
-          arrival: "8:30 PM +1"
-        },
-        {
-          id: 3,
-          airline: "Lufthansa",
-          price: "$885",
-          duration: "20h 05m",
-          stops: "1 stop (Frankfurt)",
-          departure: "6:45 AM",
-          arrival: "1:50 PM +1"
-        }
-      ]);
+      let results: any[] = [];
+      
+      if (selectedMode === "All") {
+        results = [...flightDatabase, ...trainDatabase, ...ferryDatabase];
+      } else if (selectedMode === "Plane") {
+        results = flightDatabase;
+      } else if (selectedMode === "Train") {
+        results = trainDatabase;
+      } else if (selectedMode === "Ferry") {
+        results = ferryDatabase;
+      } else {
+        results = flightDatabase; // Default to flights for other modes
+      }
+      
+      setSearchResults(results);
       setLoading(false);
     }, 1500);
   };
@@ -283,40 +399,49 @@ const Itinerary = () => {
               </Card>
             ) : (
               <div className="space-y-3">
-                {searchResults.map((result) => (
-                  <Card key={result.id} className="p-4 hover:border-primary transition-colors cursor-pointer">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Plane className="h-4 w-4 text-primary" />
-                          <p className="font-semibold">{result.airline}</p>
+                {searchResults.map((result) => {
+                  const Icon = result.type === "train" ? Train : result.type === "ferry" ? Ship : Plane;
+                  const operatorName = result.airline || result.operator;
+                  const extraInfo = result.class || result.vessel || "";
+                  
+                  return (
+                    <Card key={`${result.type}-${result.id}`} className="p-4 hover:border-primary transition-colors cursor-pointer">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Icon className="h-4 w-4 text-primary" />
+                            <p className="font-semibold">{operatorName}</p>
+                            {extraInfo && (
+                              <Badge variant="secondary" className="text-xs">{extraInfo}</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{result.stops}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">{result.stops}</p>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-primary">{result.price}</p>
+                          <p className="text-xs text-muted-foreground">per person</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">{result.price}</p>
-                        <p className="text-xs text-muted-foreground">per person</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-border">
-                      <div>
-                        <p className="text-sm font-medium">{result.departure}</p>
-                        <p className="text-xs text-muted-foreground">Departure</p>
-                      </div>
-                      <div className="flex-1 mx-4">
-                        <div className="h-px bg-border relative">
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2">
-                            <p className="text-xs text-muted-foreground">{result.duration}</p>
+                      <div className="flex items-center justify-between pt-3 border-t border-border">
+                        <div>
+                          <p className="text-sm font-medium">{result.departure}</p>
+                          <p className="text-xs text-muted-foreground">Departure</p>
+                        </div>
+                        <div className="flex-1 mx-4">
+                          <div className="h-px bg-border relative">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2">
+                              <p className="text-xs text-muted-foreground">{result.duration}</p>
+                            </div>
                           </div>
                         </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">{result.arrival}</p>
+                          <p className="text-xs text-muted-foreground">Arrival</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{result.arrival}</p>
-                        <p className="text-xs text-muted-foreground">Arrival</p>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>
