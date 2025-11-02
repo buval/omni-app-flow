@@ -28,6 +28,20 @@ serve(async (req) => {
       { name: 'London', lat: 51.5074, lon: -0.1278, country: 'UK' },
       { name: 'New York', lat: 40.7128, lon: -74.0060, country: 'USA' },
       { name: 'Bali', lat: -8.3405, lon: 115.0920, country: 'Indonesia' },
+      { name: 'Rome', lat: 41.9028, lon: 12.4964, country: 'Italy' },
+      { name: 'Barcelona', lat: 41.3851, lon: 2.1734, country: 'Spain' },
+      { name: 'Santorini', lat: 36.3932, lon: 25.4615, country: 'Greece' },
+      { name: 'Maldives', lat: 3.2028, lon: 73.2207, country: 'Maldives' },
+      { name: 'Iceland', lat: 64.1466, lon: -21.9426, country: 'Iceland' },
+      { name: 'Swiss Alps', lat: 46.5197, lon: 7.9869, country: 'Switzerland' },
+      { name: 'Machu Picchu', lat: -13.1631, lon: -72.5450, country: 'Peru' },
+      { name: 'Sydney', lat: -33.8688, lon: 151.2093, country: 'Australia' },
+      { name: 'Singapore', lat: 1.3521, lon: 103.8198, country: 'Singapore' },
+      { name: 'Bangkok', lat: 13.7563, lon: 100.5018, country: 'Thailand' },
+      { name: 'Istanbul', lat: 41.0082, lon: 28.9784, country: 'Turkey' },
+      { name: 'Amsterdam', lat: 52.3676, lon: 4.9041, country: 'Netherlands' },
+      { name: 'Rio de Janeiro', lat: -22.9068, lon: -43.1729, country: 'Brazil' },
+      { name: 'Prague', lat: 50.0755, lon: 14.4378, country: 'Czech Republic' },
     ];
 
     const destinationsPromises = cities.slice(0, limit).map(async (city) => {

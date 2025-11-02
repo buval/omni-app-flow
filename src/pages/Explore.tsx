@@ -5,6 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import BottomNav from "@/components/BottomNav";
 import welcomeImage from "@/assets/welcome-travel.jpg";
+import santoriniImg from "@/assets/destinations/santorini.jpg";
+import swissAlpsImg from "@/assets/destinations/swiss-alps.jpg";
+import machuPicchuImg from "@/assets/destinations/machu-picchu.jpg";
+import maldivesImg from "@/assets/destinations/maldives.jpg";
+import icelandImg from "@/assets/destinations/iceland.jpg";
+import barcelonaImg from "@/assets/destinations/barcelona.jpg";
+import romeImg from "@/assets/destinations/rome.jpg";
+import sydneyImg from "@/assets/destinations/sydney.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,10 +40,36 @@ const enrichWithVisaData = (destinations: Destination[]): Destination[] => {
     'Maldives': { visaStatus: 'on-arrival', stayDuration: 30 },
     'Tanzania': { visaStatus: 'on-arrival', stayDuration: 90 },
     'France': { visaStatus: 'free', stayDuration: 90 },
+    'Italy': { visaStatus: 'free', stayDuration: 90 },
+    'Spain': { visaStatus: 'free', stayDuration: 90 },
+    'Iceland': { visaStatus: 'free', stayDuration: 90 },
+    'Australia': { visaStatus: 'on-arrival', stayDuration: 90 },
+    'Singapore': { visaStatus: 'free', stayDuration: 90 },
+    'Thailand': { visaStatus: 'on-arrival', stayDuration: 30 },
+    'Netherlands': { visaStatus: 'free', stayDuration: 90 },
+    'Brazil': { visaStatus: 'free', stayDuration: 90 },
+    'Czech Republic': { visaStatus: 'free', stayDuration: 90 },
+    'UAE': { visaStatus: 'on-arrival', stayDuration: 90 },
+    'Indonesia': { visaStatus: 'on-arrival', stayDuration: 30 },
+    'UK': { visaStatus: 'free', stayDuration: 180 },
+    'USA': { visaStatus: 'on-arrival', stayDuration: 90 },
+  };
+
+  // Map of destination images
+  const destinationImages: Record<string, string> = {
+    'Santorini': santoriniImg,
+    'Swiss Alps': swissAlpsImg,
+    'Machu Picchu': machuPicchuImg,
+    'Maldives': maldivesImg,
+    'Iceland': icelandImg,
+    'Barcelona': barcelonaImg,
+    'Rome': romeImg,
+    'Sydney': sydneyImg,
   };
 
   return destinations.map(dest => ({
     ...dest,
+    image: destinationImages[dest.name] || dest.image,
     visaStatus: visaData[dest.country]?.visaStatus || 'free',
     stayDuration: visaData[dest.country]?.stayDuration || 90,
   }));
@@ -92,7 +126,7 @@ const Explore = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('fetch-destinations', {
-        body: { limit: 9, radius: 50000 }
+        body: { limit: 15, radius: 50000 }
       });
 
       if (error) throw error;
